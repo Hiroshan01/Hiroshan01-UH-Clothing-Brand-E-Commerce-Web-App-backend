@@ -23,6 +23,10 @@ const userSchema = mongoose.Schema({
     require: true,
     default: "customer",
   },
+  isBlock: {
+    type: Boolean,
+    default: false,
+  },
   img: {
     type: String,
     required: true,
