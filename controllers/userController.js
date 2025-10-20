@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 
 export async function createUser(req, res) {
   try {
-    // Validate required fields
     if (
       !req.body.firstName ||
       !req.body.lastName ||
@@ -70,7 +69,6 @@ export async function createUser(req, res) {
   }
 }
 
-//Login
 export function userLogin(req, res) {
   const email = req.body.email;
   const password = req.body.password;
@@ -81,9 +79,8 @@ export function userLogin(req, res) {
         message: "User not found",
       });
     } else {
-      const isPasswordCorrect = bcrypt.compareSync(password, user.password); //compare
+      const isPasswordCorrect = bcrypt.compareSync(password, user.password);
       if (isPasswordCorrect) {
-        // Generate encrypt
         const token = jwt.sign(
           {
             email: user.email,
