@@ -2,13 +2,12 @@ import express from "express";
 import bodyParser from "body-parser";
 import userRoute from "./routes/userRoutes.js";
 import connectDB from "./config/configDB.js";
-
 import jwt from "jsonwebtoken";
-// import orderedRoute from './routes/orderRouter.js';
-// import reviewRouter from './routes/reviewRouter.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import productRoute from "./routes/productRoute.js";
+import orderRoute from "./routes/orderRoute.js";
+
 dotenv.config();
 
 let app = express();
@@ -42,7 +41,7 @@ connectDB();
 //Routers
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/product", productRoute);
-// app.use("/api/order", orderedRoute)
+app.use("/api/v1/order", orderRoute);
 // app.use("/api/review", reviewRouter)
 
 app.listen(5000, () => {
