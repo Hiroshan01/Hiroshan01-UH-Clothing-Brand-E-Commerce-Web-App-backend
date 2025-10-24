@@ -8,18 +8,33 @@ export function saveProduct(req, res) {
     });
     return;
   }
-  const product = new Product(req.body);
+
+  const productData = {
+    productId: req.body.productId,
+    productName: req.body.ProductName || req.body.productName,
+    category: req.body.category,
+    size: req.body.size,
+    images: req.body.images,
+    description: req.body.description,
+    labelledPrice: req.body.labelledPrice,
+    price: req.body.price,
+    stock: req.body.stock,
+  };
+
+  const product = new Product(productData);
 
   product
     .save()
     .then(() => {
-      res.json({
+      res.status(201).json({
         message: "Product added successfully",
       });
     })
-    .catch(() => {
-      res.json({
+    .catch((error) => {
+      console.error("Save error:", error);
+      res.status(500).json({
         message: "Failed to add product.",
+        error: error.message,
       });
     });
 }
