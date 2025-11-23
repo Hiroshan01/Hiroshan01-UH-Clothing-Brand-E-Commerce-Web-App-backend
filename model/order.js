@@ -10,7 +10,7 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  name: {
+  fullName: {
     type: String,
     required: true,
   },
@@ -18,7 +18,18 @@ const orderSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  phone2: {
+    type: String,
+  },
   address: {
+    type: String,
+    required: true,
+  },
+  district: {
+    type: String,
+    required: true,
+  },
+  zipCode: {
     type: String,
     required: true,
   },

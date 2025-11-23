@@ -33,6 +33,26 @@ export async function createOrder(req, res) {
     return;
   }
 
+  if (!orderInfo.district) {
+    res.status(400).json({
+      message: "District is required",
+    });
+    return;
+  }
+
+  if (!orderInfo.fullName) {
+    res.status(400).json({
+      message: "FullName is required",
+    });
+    return;
+  }
+  if (!orderInfo.zipCode) {
+    res.status(400).json({
+      message: "ZipCode is required",
+    });
+    return;
+  }
+
   if (orderInfo.name == null) {
     orderInfo.name = req.user.firstName + " " + req.user.lastName;
   }
@@ -57,7 +77,7 @@ export async function createOrder(req, res) {
 
     for (let i = 0; i < orderInfo.products.length; i++) {
       const productItem = orderInfo.products[i];
-      
+
       // Validate product structure
       if (!productItem.productId || !productItem.qty) {
         res.status(400).json({
@@ -113,7 +133,11 @@ export async function createOrder(req, res) {
       email: req.user.email,
       name: orderInfo.name,
       address: orderInfo.address,
+      fullName: orderInfo.fullName,
+      district: orderInfo.district,
+      zipCode: orderInfo.zipCode,
       phone: orderInfo.phone,
+      phone2: orderInfo.phone2,
       total: total,
       products: products,
       labelTotal: labelTotal,
