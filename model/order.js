@@ -26,8 +26,18 @@ const orderSchema = mongoose.Schema({
     required: true,
   },
   district: {
-    type: String,
-    required: true,
+    id: {
+      type: Number,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    province: {
+      type: String,
+      required: true,
+    },
   },
   zipCode: {
     type: String,

@@ -114,7 +114,7 @@ export async function createOrder(req, res) {
       products[i] = {
         productInfo: {
           productId: item.productId,
-          name: item.productName, // Fixed: was ProductName
+          name: item.productName,
           description: item.description,
           size: item.size,
           category: item.category,
@@ -153,6 +153,93 @@ export async function createOrder(req, res) {
     res.status(500).json({
       message: "Failed to create order",
       error: err.message || err,
+    });
+  }
+}
+
+export async function getUserOrders(req, res) {
+  if (req.user == null) {
+    res.status(403).json({
+      message: "Please Login and try again",
+    });
+    return;
+  }
+  try {
+    if (req.user.role == "admin") {
+      const orders = await Order.find();
+      res.json(orders);
+    } else {
+      const orders = await Order.find({ email: req.user.email });
+      res.json(orders);
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch orders",
+      error: err,
+    });
+  }
+}
+
+// Get All Orders for Admin
+export async function getAdminOrders(req, res) {
+  if (req.user == null) {
+    res.status(403).json({
+      message: "Please Login and try again",
+    });
+    return;
+  }
+  if (!isAdmin(req)) {
+    return res.status(403).json({
+      message: "You are not authorized to access admin orders",
+    });
+  }
+  try {
+    const orders = await Order.find();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to fetch admin orders",
+      error: err,
+    });
+  }
+}
+// Update Order Status
+export async function updateAdminOrderStatus(req, res) {
+  if (req.user == null) {
+    res.status(403).json({
+      message: "Please Login and try again",
+    });
+    return;
+  }
+  
+  if (req.user.role != "admin") { 
+    return res.status(403).json({
+      message: "You are not authorized to update orders as admin",
+    });
+  }
+
+  try {
+    const { orderId } = req.params; 
+    const { status } = req.body; 
+
+    const updated = await Order.updateOne(
+      { orderId: orderId },
+      { status: status }
+    );
+
+    if (updated.matchedCount === 0) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Order status updated successfully",
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: "Failed to update order status",
+      error: e.message || e,
     });
   }
 }
