@@ -72,6 +72,41 @@ export async function createReview(req, res) {
   }
 }
 
+// Get all reviews (Admin only)
+export async function getAllReviews(req, res) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ 
+        message: "Authentication required." 
+      });
+    }
+
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ 
+        message: "Access denied. Admin privileges required." 
+      });
+    }
+
+    // 
+    const reviews = await Review.find()
+      .populate("user", "firstName lastName email img") 
+      .populate("product", "productName productId images price") 
+      .sort({ createdAt: -1 }); 
+
+    res.status(200).json({
+      message: "Reviews fetched successfully.",
+      count: reviews.length,
+      reviews: reviews,
+    });
+  } catch (error) {
+    console.error("Error fetching all reviews:", error);
+    res.status(500).json({
+      message: "Failed to fetch reviews.",
+      error: error.message,
+    });
+  }
+}
+
 // Get review
 export async function getProductReviews(req, res) {
   try {
@@ -90,54 +125,6 @@ export async function getProductReviews(req, res) {
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch reviews.",
-      error: error.message,
-    });
-  }
-}
-
-// Update
-export async function updateReview(req, res) {
-  if (!req.user) {
-    return res.status(401).json({ message: "Authentication required." });
-  }
-
-  const { reviewId } = req.params;
-  const { rating, comment } = req.body;
-  const userId = req.user._id;
-
-  try {
-    const review = await Review.findById(reviewId);
-
-    if (!review) {
-      return res.status(404).json({ message: "Review not found." });
-    }
-
-    const isOwner = review.user.toString() === userId.toString();
-    const isAdmin = req.user.role === "admin";
-
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({
-        message: "You are not authorized to update this review.",
-      });
-    }
-
-    //
-    const updateData = {};
-    if (rating) updateData.rating = rating;
-    if (comment) updateData.comment = comment;
-
-    const updatedReview = await Review.findByIdAndUpdate(reviewId, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    res.status(200).json({
-      message: "Review updated successfully.",
-      review: updatedReview,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Failed to update review.",
       error: error.message,
     });
   }
