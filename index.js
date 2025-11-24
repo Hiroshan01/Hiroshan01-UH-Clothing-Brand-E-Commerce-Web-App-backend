@@ -7,6 +7,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import productRoute from "./routes/productRoute.js";
 import orderRoute from "./routes/orderRoute.js";
+import reviewRouter from "./routes/reviewRoute.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ connectDB();
 app.use("/api/v1/users", userRoute);
 app.use("/api/v1/product", productRoute);
 app.use("/api/v1/order", orderRoute);
+app.use("/api/v1/review", reviewRouter);
 // app.use("/api/review", reviewRouter)
 
 app.listen(5000, () => {
