@@ -1,5 +1,6 @@
 import Order from "../model/order.js";
 import Product from "../model/product.js";
+import { isAdmin } from "../utils/roleCheck.js";
 
 export async function createOrder(req, res) {
   if (req.user == null) {
@@ -211,16 +212,16 @@ export async function updateAdminOrderStatus(req, res) {
     });
     return;
   }
-  
-  if (req.user.role != "admin") { 
+
+  if (req.user.role != "admin") {
     return res.status(403).json({
       message: "You are not authorized to update orders as admin",
     });
   }
 
   try {
-    const { orderId } = req.params; 
-    const { status } = req.body; 
+    const { orderId } = req.params;
+    const { status } = req.body;
 
     const updated = await Order.updateOne(
       { orderId: orderId },
@@ -240,6 +241,72 @@ export async function updateAdminOrderStatus(req, res) {
     res.status(500).json({
       message: "Failed to update order status",
       error: e.message || e,
+    });
+  }
+}
+
+export async function getSalesData(req, res) {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Please Login and try again",
+    });
+  }
+
+  if (!isAdmin(req)) {
+    return res.status(403).json({
+      message: "You are not authorized to access sales data",
+    });
+  }
+
+  try {
+    const today = new Date();
+    const lastYear = new Date(today.setFullYear(today.getFullYear() - 1));
+
+    const salesData = await Order.aggregate([
+      {
+        $match: {
+          date: { $gte: lastYear },
+          status: { $nin: ["cancelled", "failed"] },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$date" },
+            month: { $month: "$date" },
+          },
+          totalSales: { $sum: "$total" },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { "_id.year": 1, "_id.month": 1 },
+      },
+      {
+        $project: {
+          _id: 0,
+          monthYear: {
+            $concat: [
+              { $toString: "$_id.year" },
+              "-",
+              { $toString: "$_id.month" },
+            ],
+          },
+          totalSales: 1,
+          totalOrders: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      message: "Sales data fetched successfully",
+      data: salesData,
+    });
+  } catch (err) {
+    console.error("Sales data error:", err);
+    res.status(500).json({
+      message: "Failed to fetch sales data",
+      error: err.message || err,
     });
   }
 }

@@ -44,7 +44,6 @@ app.use("/api/v1/users", userRoute);
 app.use("/api/v1/product", productRoute);
 app.use("/api/v1/order", orderRoute);
 app.use("/api/v1/review", reviewRouter);
-// app.use("/api/review", reviewRouter)
 
 app.listen(5000, () => {
   console.log("Server is running on 5000");
