@@ -53,6 +53,18 @@ export async function createOrder(req, res) {
     });
     return;
   }
+  if (!orderInfo.category) {
+    res.status(400).json({
+      message: "Category is required",
+    });
+    return;
+  }
+  if (!orderInfo.size) {
+    res.status(400).json({
+      message: "Size is required",
+    });
+    return;
+  }
 
   if (orderInfo.name == null) {
     orderInfo.name = req.user.firstName + " " + req.user.lastName;
@@ -142,6 +154,9 @@ export async function createOrder(req, res) {
       total: total,
       products: products,
       labelTotal: labelTotal,
+      category: orderInfo.category,
+      size: orderInfo.size,
+      color: orderInfo.color,
     });
 
     const createdOrder = await order.save();
@@ -167,10 +182,12 @@ export async function getUserOrders(req, res) {
   }
   try {
     if (req.user.role == "admin") {
-      const orders = await Order.find();
+      const orders = await Order.find().sort({ createdAt: -1 });
       res.json(orders);
     } else {
-      const orders = await Order.find({ email: req.user.email });
+      const orders = await Order.find({ email: req.user.email }).sort({
+        createdAt: -1,
+      });
       res.json(orders);
     }
   } catch (err) {
@@ -306,6 +323,104 @@ export async function getSalesData(req, res) {
     console.error("Sales data error:", err);
     res.status(500).json({
       message: "Failed to fetch sales data",
+      error: err.message || err,
+    });
+  }
+}
+export async function getTodaySalesData(req, res) {
+  if (!req.user) {
+    return res.status(401).json({
+      message: "Please Login and try again",
+    });
+  }
+
+  if (!isAdmin(req)) {
+    return res.status(403).json({
+      message: "You are not authorized to access sales data",
+    });
+  }
+
+  try {
+    // Get start and end of today
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todaySales = await Order.aggregate([
+      {
+        $match: {
+          date: { $gte: startOfDay, $lte: endOfDay },
+          status: { $nin: ["cancelled", "failed"] },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$total" },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalSales: 1,
+          totalOrders: 1,
+        },
+      },
+    ]);
+
+    // If no sales today, return zeros
+    const result =
+      todaySales.length > 0 ? todaySales[0] : { totalSales: 0, totalOrders: 0 };
+
+    res.status(200).json({
+      message: "Today's sales data fetched successfully",
+      data: result,
+    });
+  } catch (err) {
+    console.error("Today's sales data error:", err);
+    res.status(500).json({
+      message: "Failed to fetch today's sales data",
+      error: err.message || err,
+    });
+  }
+}
+
+// Delete Order (Admin only)
+export async function deleteOrder(req, res) {
+  if (!req.user) {
+    return res.status(403).json({
+      message: "Please Login and try again",
+    });
+  }
+
+  if (!isAdmin(req)) {
+    return res.status(403).json({
+      message: "You are not authorized to delete orders",
+    });
+  }
+
+  try {
+    const { orderId } = req.params;
+
+    const deletedOrder = await Order.findOneAndDelete({ orderId: orderId });
+
+    if (!deletedOrder) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Order deleted successfully",
+      order: deletedOrder,
+    });
+  } catch (err) {
+    console.error("Order deletion error:", err);
+    res.status(500).json({
+      message: "Failed to delete order",
       error: err.message || err,
     });
   }

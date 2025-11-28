@@ -14,7 +14,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: [true, "Please Enter product category"],
       enum: {
-        values: ["Men", "Women", "Kids"],
+        values: ["Men", "Women", "Kids","Men-Women"],
         message: "Please select a valid category",
       },
     },
@@ -22,7 +22,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
       enum: {
-        values: ["S", "M", "L", "XL"],
+        values: ["S", "M", "L", "XL","S | M | L | XL"],
         message: "Please select a valid category",
       },
     },

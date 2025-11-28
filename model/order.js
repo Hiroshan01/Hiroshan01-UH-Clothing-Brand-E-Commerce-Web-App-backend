@@ -56,6 +56,17 @@ const orderSchema = mongoose.Schema({
     type: Number,
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+  },
+  size: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+  },
   products: [
     {
       productInfo: {
